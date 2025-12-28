@@ -13,14 +13,14 @@ jobs:
     name: Run Tests / OS ${{ matrix.os }} / Python ${{ matrix.python-version }}
     strategy:
       matrix:
-        os: [ ubuntu-latest ]
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v5
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
 
@@ -30,11 +30,8 @@ jobs:
       - name: Install dependencies
         run: uv sync --python ${{ matrix.python-version }} --all-extras --dev
 
-      - name: Run tests
-        run: uv run bash scripts/test.sh
-
-      - name: Run linters
-        run: uv run bash scripts/lint.sh
+      - name: Run Code Coverage Tests Pipeline
+        run: uv run bash scripts/pre-commit.sh
 
   release:
     name: Bump Version and Release
@@ -55,12 +52,12 @@ jobs:
       url: https://pypi.org/project/${{ steps.inspect_package.outputs.package }}/${{ steps.inspect_package.outputs.version }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
 
@@ -91,7 +88,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           body_path: CHANGES.md
-          token: ${{ secrets.ATTICUS_PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
 # Reference
 # 1. https://docs.astral.sh/uv/guides/integration/github/#syncing-and-running
