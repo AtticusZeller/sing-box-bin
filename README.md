@@ -10,7 +10,7 @@ A Python wrapper for sing-box binary releases
 git add src/sing_box_bin/bin/
 git commit -m "feat: update sing-box binary to version vx.y.z"
 uv tool install bump-my-version
-bump-my-version bump --new-version "x.y.z"
+bump-my-version bump --new-version vx.y.z --commit --tag
 git push origin main --tags
 ```
 
