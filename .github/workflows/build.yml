@@ -23,17 +23,29 @@ jobs:
         run: |
           LATEST_TAG=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | jq -r .tag_name)
           CLEAN_VERSION="${LATEST_TAG#v}"
+          REQUIRED_BINARIES=(
+            "src/sing_box_bin/bin/sing-box-linux-amd64"
+            "src/sing_box_bin/bin/sing-box-linux-arm64"
+            "src/sing_box_bin/bin/sing-box-windows-amd64.exe"
+          )
 
           echo "Upstream Tag: $LATEST_TAG"
           echo "version=$LATEST_TAG" >> $GITHUB_OUTPUT
           echo "clean_version=$CLEAN_VERSION" >> $GITHUB_OUTPUT
 
-          BIN_PATH="src/sing_box_bin/bin/sing-box"
+          MISSING_BINARY=false
+          for bin_path in "${REQUIRED_BINARIES[@]}"; do
+            if [ ! -f "$bin_path" ]; then
+              echo "⚠️ Missing binary: $bin_path"
+              MISSING_BINARY=true
+            fi
+          done
 
-          # whether to build
-          if [ -f "$BIN_PATH" ]; then
-            chmod +x "$BIN_PATH"
-            CURRENT_TAG="v$($BIN_PATH version | head -n 1 | awk '{print $3}')"
+          if [ "$MISSING_BINARY" = "true" ]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+          else
+            chmod +x "${REQUIRED_BINARIES[0]}"
+            CURRENT_TAG="v$(${REQUIRED_BINARIES[0]} version | head -n 1 | awk '{print $3}')"
 
             echo "Current Binary Tag: $CURRENT_TAG"
 
@@ -44,9 +56,6 @@ jobs:
               echo "🔄 Update needed: $CURRENT_TAG -> $LATEST_TAG"
               echo "should_build=true" >> $GITHUB_OUTPUT
             fi
-          else
-            echo "⚠️ Binary does not exist, building fresh."
-            echo "should_build=true" >> $GITHUB_OUTPUT
           fi
 
   build-and-push:
@@ -57,7 +66,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          token: ${{ secrets. ATTICUS_PAT }}
+          token: ${{ secrets.ATTICUS_PAT }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v6
@@ -86,6 +95,13 @@ jobs:
 
       - name: Bump version
         run: |
+          CURRENT_PACKAGE_VERSION=$(uvx hatchling version)
+          if [ "$CURRENT_PACKAGE_VERSION" = "${{ needs.check.outputs.clean_version }}" ] || \
+             [ "${CURRENT_PACKAGE_VERSION#${{ needs.check.outputs.clean_version }}.post}" != "$CURRENT_PACKAGE_VERSION" ]; then
+            echo "Package version is already $CURRENT_PACKAGE_VERSION; skipping bump."
+            exit 0
+          fi
+
           uv tool install bump-my-version
           uv run bump-my-version bump --new-version "${{ needs.check.outputs.clean_version }}" --commit --tag
 

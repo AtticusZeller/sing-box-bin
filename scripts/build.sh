@@ -39,6 +39,12 @@ export GOARCH=amd64
 go build "${MAIN_PARAMS[@]}" -o sing-box-linux-amd64 "$MAIN"
 mv sing-box-linux-amd64 ../src/sing_box_bin/bin/
 
+echo "🔨 Building for Linux (ARM64)..."
+export GOOS=linux
+export GOARCH=arm64
+go build "${MAIN_PARAMS[@]}" -o sing-box-linux-arm64 "$MAIN"
+mv sing-box-linux-arm64 ../src/sing_box_bin/bin/
+
 # --- Windows Build ---
 echo "🔨 Building for Windows (AMD64)..."
 export GOOS=windows

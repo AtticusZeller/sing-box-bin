@@ -33,17 +33,40 @@ def test_get_bin_path_windows():
 
 def test_get_bin_path_linux_chmod():
     with patch("sys.platform", "linux"):
-        with patch("pathlib.Path.exists", return_value=True):
-            with patch("os.stat") as mock_stat:
-                with patch("os.chmod") as mock_chmod:
-                    mock_stat.return_value.st_mode = 0o644
+        with patch("platform.machine", return_value="x86_64"):
+            with patch("pathlib.Path.exists", return_value=True):
+                with patch("os.stat") as mock_stat:
+                    with patch("os.chmod") as mock_chmod:
+                        mock_stat.return_value.st_mode = 0o644
 
-                    path = get_bin_path()
+                        path = get_bin_path()
 
-                    assert path.name == "sing-box-linux-amd64"
-                    mock_chmod.assert_called_once()
-                    args, _ = mock_chmod.call_args
-                    assert args[1] & 0o111
+                        assert path.name == "sing-box-linux-amd64"
+                        mock_chmod.assert_called_once()
+                        args, _ = mock_chmod.call_args
+                        assert args[1] & 0o111
+
+
+def test_get_bin_path_linux_arm64():
+    with patch("sys.platform", "linux"):
+        with patch("platform.machine", return_value="aarch64"):
+            with patch("pathlib.Path.exists", return_value=True):
+                with patch("os.stat") as mock_stat:
+                    with patch("os.chmod") as mock_chmod:
+                        mock_stat.return_value.st_mode = 0o644
+
+                        path = get_bin_path()
+
+                        assert path.name == "sing-box-linux-arm64"
+                        mock_chmod.assert_called_once()
+
+
+def test_get_bin_path_linux_unsupported_arch():
+    with patch("sys.platform", "linux"):
+        with patch("platform.machine", return_value="riscv64"):
+            with pytest.raises(RuntimeError) as excinfo:
+                get_bin_path()
+        assert "Unsupported Linux architecture" in str(excinfo.value)
 
 
 def test_binary_not_found():

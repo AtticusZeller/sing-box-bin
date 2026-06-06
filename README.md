@@ -2,6 +2,15 @@
 
 A Python wrapper for sing-box binary releases
 
+Bundled binaries:
+
+- Linux AMD64: `sing-box-linux-amd64`
+- Linux ARM64: `sing-box-linux-arm64`
+- Windows AMD64: `sing-box-windows-amd64.exe`
+
+Patch releases such as `1.13.13.post1` are packaging-only fixes for the same
+upstream sing-box version.
+
 
 ## build and bump version
 
