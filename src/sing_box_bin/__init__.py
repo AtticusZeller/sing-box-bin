@@ -5,7 +5,7 @@ from pathlib import Path
 
 __all__ = ["get_bin_path"]
 
-__version__ = "1.14.3"
+__version__ = "1.14.4"
 
 
 def get_bin_path() -> Path:
