@@ -23,7 +23,7 @@ git clone https://github.com/SagerNet/sing-box sing-box-tmp --depth 1 --branch "
 cd sing-box-tmp
 
 # Build configuration
-TAGS="with_quic,with_wireguard,with_clash_api,with_gvisor"
+TAGS="with_quic,with_wireguard,with_clash_api,with_gvisor,with_tailscale"
 export CGO_ENABLED=0
 # Read version internally from the go module to ensure consistency
 INTERNAL_VERSION=$(go run ./cmd/internal/read_tag)
